@@ -57,12 +57,6 @@ contract Pixels {
 			else
 				allBlocks[requiredBlocks[i]].owner.transfer(allBlocks[requiredBlocks[i]].price *  95 / 100);
 
-
-			// Assign block to buyer
-			allBlocks[requiredBlocks[i]].owner = msg.sender;
-
-			// Dispatch buying event
-
 			// Assign block data to required
 			allBlocks[requiredBlocks[i]].title = title;
 			allBlocks[requiredBlocks[i]].url = url;
@@ -72,6 +66,10 @@ contract Pixels {
 			if (allBlocks[requiredBlocks[i]].owner != msg.sender)
 				allBlocks[requiredBlocks[i]].price = allBlocks[requiredBlocks[i]].price * 15 / 10;
 			
+			// Assign block to buyer
+			allBlocks[requiredBlocks[i]].owner = msg.sender;
+			
+			// Dispatch buying event
 			blockBought(requiredBlocks[i], msg.sender, allBlocks[requiredBlocks[i]].price, title, url, ipfsImageHashes[i]);
 		}
 	}
