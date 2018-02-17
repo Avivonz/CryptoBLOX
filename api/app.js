@@ -175,21 +175,21 @@ async function getRankings(latestBlockEvents) {
         for(var i = 0; i < sortedRankings.length; i++){
 
             // Find old rankings index of corresponding user
-            let oldIndex = oldRankings.findIndex(function(rank){
-                return rank[0] == sortedRankings[i][0]
-            })
+            let oldIndex = oldRankings.findIndex(function(rank){return rank[0] == sortedRankings[i][0]})
             // Calculate change
             let change = oldIndex - i;
 
-            // Increment block counter per change
+            // If no change
             if(change == 0){
-                sortedRankings[i][2] = oldRankings[i][2];
+            	// Assign old change value
+                sortedRankings[i][2] = oldRankings[oldIndex][2];
+                // Increment no change counter by 1
                 noChangeCounter[sortedRankings[i][0]] = (noChangeCounter[sortedRankings[i][0]] || 0) + 1;
             }
 
-            // (If he had a change in rankings, and he had no change in 10 blocks) or (He had a change)
+            // If he had 10 no change in a row, change it to no change || he has a change
             if((noChangeCounter[sortedRankings[i][0]] == 10) || (change != 0)){
-                noChangeCounter[sortedRankings[i][2]] = 0;
+                noChangeCounter[sortedRankings[i][0]] = 0;
                 sortedRankings[i][2] = change;
             }
         }
