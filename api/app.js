@@ -176,6 +176,12 @@ async function getRankings(latestBlockEvents) {
 
             // Find old rankings index of corresponding user
             let oldIndex = oldRankings.findIndex(function(rank){return rank[0] == sortedRankings[i][0]})
+
+            // If not found in oldRankings - new user
+            if(oldIndex == -1){
+                sortedRankings[i][2] = 0;
+                continue;
+            }
             // Calculate change
             let change = oldIndex - i;
 
