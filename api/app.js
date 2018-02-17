@@ -22,13 +22,14 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 const pixels = contract(PixelsContract);
 pixels.setProvider(web3.currentProvider)
 var pixelsInstance = null;
-var CONTRACT_ADDR = '0xaeD153A5288EcAc403c6559607644F35c4230827';
+var CONTRACT_ADDR = '0x4e292bf8751b52a18f82dfd81b2e100b20ff504a';
 /*
 ***************************************************************
 */
 
 var ipfs                = ipfsAPI('localhost', '5001', {protocol: 'http'})
 var rankings = [];
+var noChangeCounter = {};
 watchOnBlock();
 var db = new Datastore({filename : "owners", autoload: true});
 
@@ -131,7 +132,7 @@ async function getUsername(address){
 async function addUsername(address, user){
     if(await getUsername(address) === null) {
         db.insert({address : address, owner : user}, function (err, newDocs){
-            console.log(newDocs);
+            // console.log(newDocs);
         });
     }
 }
@@ -143,7 +144,7 @@ async function getRankings(latestBlockEvents) {
         tmpRankings[latestBlockEvents[block].owner] = (tmpRankings[latestBlockEvents[block].owner] || 0) + 1; 
     }
     
-    console.log(tmpRankings);
+    //console.log(tmpRankings);
 
     var sortedRankings = [];
 
@@ -177,25 +178,33 @@ async function getRankings(latestBlockEvents) {
             let oldIndex = oldRankings.findIndex(function(rank){
                 return rank[0] == sortedRankings[i][0]
             })
-
             // Calculate change
             let change = oldIndex - i;
 
-            sortedRankings[i][2]= change;
+            // Increment block counter per change
+            if(change == 0){
+                sortedRankings[i][2] = oldRankings[i][2];
+                noChangeCounter[sortedRankings[i][0]] = (noChangeCounter[sortedRankings[i][0]] || 0) + 1;
+            }
 
+            // (If he had a change in rankings, and he had no change in 10 blocks) or (He had a change)
+            if((noChangeCounter[sortedRankings[i][0]] == 10) || (change != 0)){
+                noChangeCounter[sortedRankings[i][2]] = 0;
+                sortedRankings[i][2] = change;
+            }
         }
     }
     // Set Global variable
     rankings = sortedRankings;
 
-    console.log(rankings);
+    //console.log(rankings);
     return sortedRankings;
 }
 
 function watchOnBlock() {
 
     var filter = web3.eth.filter('latest');
-    console.log(filter);
+    //console.log(filter);
     filter.watch(async function(error, result){
         var block = web3.eth.getBlock(result, true);
 
@@ -203,7 +212,7 @@ function watchOnBlock() {
 
         // Initiate instance at existing address
         pixelsInstance = await pixels.at(CONTRACT_ADDR);
-        console.log(pixelsInstance);
+        //console.log(pixelsInstance);
         // Create Event listener
         var BlockBoughtEvent = pixelsInstance.blockBought({}, { fromBlock: 0, toBlock: 'latest'});
 
